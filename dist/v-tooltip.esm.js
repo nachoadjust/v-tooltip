@@ -2376,6 +2376,7 @@ var Popper = function () {
     var _this = this;
 
     var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
     classCallCheck(this, Popper);
 
     this.scheduleUpdate = function () {
@@ -2667,7 +2668,8 @@ var DEFAULT_OPTIONS = {
 	title: '',
 	template: '<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
 	trigger: 'hover focus',
-	offset: 0
+	offset: 0,
+  trim: false
 };
 
 var openTooltips = [];
@@ -2775,6 +2777,7 @@ var Tooltip = function () {
 	}, {
 		key: 'setOptions',
 		value: function setOptions(options) {
+
 			var classesUpdated = false;
 			var classes = options && options.classes || directive.options.defaultClass;
 			if (this._classes !== classes) {
@@ -2976,11 +2979,15 @@ var Tooltip = function () {
 
 			// get title
 			var title = reference.getAttribute('title') || options.title;
-
 			// don't show tooltip if no title is defined
 			if (!title) {
 				return this;
 			}
+
+      // don't show tooltip if param trim is set and innerHTML is shorter than container
+      if (options.trim && !(reference.scrollWidth > reference.clientWidth)) {
+        return this;
+      }
 
 			// create tooltip node
 			var tooltipNode = this._create(reference, options.template);
@@ -3397,6 +3404,7 @@ var defaultOptions = {
 };
 
 function getOptions(options) {
+
 	var result = {
 		placement: typeof options.placement !== 'undefined' ? options.placement : directive.options.defaultPlacement,
 		delay: typeof options.delay !== 'undefined' ? options.delay : directive.options.defaultDelay,
@@ -3461,13 +3469,23 @@ function getContent(value) {
 	}
 }
 
+function getTrim(value) {
+	var type = typeof value === 'undefined' ? 'undefined' : _typeof(value);
+  if (value && type === 'object') {
+		return value.trim;
+	} else {
+		return false;
+	}
+}
+
 function createTooltip(el, value) {
 	var modifiers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
 	var content = getContent(value);
+  var trim = getTrim(value);
 	var classes = typeof value.classes !== 'undefined' ? value.classes : directive.options.defaultClass;
 	var opts = _extends$1({
-		title: content
+		title: content,
+    trim: trim
 	}, getOptions(_extends$1({}, value, {
 		placement: getPlacement(value, modifiers)
 	})));
